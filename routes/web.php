@@ -54,7 +54,7 @@ Route::middleware(['auth'])->prefix('api/formularios')->name('api.formularios.')
 });
 
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Admin/Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Votaciones routes for regular users
@@ -163,9 +163,10 @@ Route::middleware(['auth'])->prefix('api/geographic')->name('api.geographic.')->
     Route::get('localidades', [GeographicController::class, 'localidades'])->name('localidades');
 });
 
+// Ruta admin/dashboard redirige al dashboard principal
 Route::get('admin/dashboard', function () {
-    return Inertia::render('Admin/Dashboard');
-})->middleware(['auth', 'verified', 'admin'])->name('admin.dashboard');
+    return redirect()->route('dashboard');
+})->middleware(['auth', 'verified'])->name('admin.dashboard');
 
 // Admin routes
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {

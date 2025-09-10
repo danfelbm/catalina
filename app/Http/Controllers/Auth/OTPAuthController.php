@@ -250,9 +250,8 @@ class OTPAuthController extends Controller
         // Regenerar sesión por seguridad
         $request->session()->regenerate();
 
-        // Redirigir según tipo de usuario
-        $redirectRoute = ($user->isAdmin() || $user->isSuperAdmin()) ? 'admin.dashboard' : 'dashboard';
-        return redirect()->route($redirectRoute)->with('success', 'Autenticación exitosa.');
+        // Redirigir todos los usuarios al dashboard unificado
+        return redirect()->route('dashboard')->with('success', 'Autenticación exitosa.');
     }
 
     /**
