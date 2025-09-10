@@ -35,7 +35,7 @@ defineProps<{
             <div class="relative overflow-hidden rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8">
                 <div class="relative z-10">
                     <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900 dark:text-white">
-                        Bienvenido a la plataforma de reportes
+                        Diagnostico de cultura en prevención SST
                     </h1>
                     <p class="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
                         Aquí podrás consultar el estado de los formularios, generar reportes de madurez organizacional y gestionar todas las herramientas de análisis disponibles.

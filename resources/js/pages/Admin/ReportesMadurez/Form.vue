@@ -40,16 +40,37 @@ const breadcrumbs: BreadcrumbItemType[] = [
     },
 ];
 
+// Función auxiliar para formatear fecha a YYYY-MM-DD
+// Esta función convierte fechas ISO a formato requerido por input type="date"
+const formatearFechaParaInput = (fecha: string | null | undefined): string => {
+    if (!fecha) return '';
+    
+    // Si la fecha ya está en formato YYYY-MM-DD, devolverla tal cual
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return fecha;
+    }
+    
+    // Si es una fecha ISO o con timestamp, extraer solo YYYY-MM-DD
+    // Formato esperado: "2024-01-15T00:00:00.000000Z" o similar
+    // También maneja fechas como "2024-01-15 00:00:00"
+    const partesFecha = fecha.split(/[T\s]/)[0]; // Divide por T o espacio
+    
+    // Validar que la parte extraída tiene formato de fecha válido
+    if (partesFecha && /^\d{4}-\d{2}-\d{2}$/.test(partesFecha)) {
+        return partesFecha;
+    }
+    
+    return '';
+};
+
 // Configurar formulario con valores iniciales
 const form = useForm({
     empresa: props.reporte?.empresa || '',
     ciudad: props.reporte?.ciudad || '',
     centro_trabajo: props.reporte?.centro_trabajo || '',
     area: props.reporte?.area || '',
-    fecha_realizacion: props.reporte?.fecha_realizacion || '',
+    fecha_realizacion: formatearFechaParaInput(props.reporte?.fecha_realizacion),
 });
-
-// Fecha en formato YYYY-MM-DD para input type="date"
 
 // Función para enviar formulario
 const enviarFormulario = () => {
