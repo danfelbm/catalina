@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import { Trophy, Calculator } from 'lucide-vue-next';
 
 // Registrar todos los componentes de Chart.js
 Chart.register(...registerables);
@@ -27,6 +28,48 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Computed: Nivel con más respuestas (nivel dominante)
+const nivelDominante = computed(() => {
+    const niveles = props.estadisticas.por_nivel;
+    let maxNivel = '';
+    let maxCantidad = 0;
+    
+    for (const [nivel, cantidad] of Object.entries(niveles)) {
+        if (cantidad > maxCantidad) {
+            maxCantidad = cantidad;
+            maxNivel = nivel;
+        }
+    }
+    
+    return props.niveles[maxNivel] || maxNivel.toUpperCase();
+});
+
+// Computed: Puntaje promedio de cultura SST
+const puntajePromedio = computed(() => {
+    const niveles = props.estadisticas.por_nivel;
+    
+    // Multiplicadores por nivel
+    const multiplicadores = {
+        emergente: 1,
+        resolutivo: 2,
+        laborioso: 3,
+        cooperativo: 4,
+        progresivo: 5
+    };
+    
+    // Calcular suma ponderada
+    let sumaPonderada = 0;
+    for (const [nivel, cantidad] of Object.entries(niveles)) {
+        if (multiplicadores[nivel]) {
+            sumaPonderada += cantidad * multiplicadores[nivel];
+        }
+    }
+    
+    // Dividir entre 24 (total de elementos)
+    const promedio = sumaPonderada / 24;
+    return promedio.toFixed(2);
+});
 
 // Referencias a los canvas de los gráficos
 const chartNivelesRef = ref<HTMLCanvasElement | null>(null);
@@ -303,7 +346,7 @@ onUnmounted(() => {
         <!-- Distribución detallada por niveles -->
         <Card>
             <CardHeader>
-                <CardTitle>Distribución Detallada por Niveles</CardTitle>
+                <CardTitle>Total de respuestas por nivel</CardTitle>
                 <CardDescription>
                     Cantidad exacta de elementos en cada nivel de madurez
                 </CardDescription>
@@ -328,6 +371,41 @@ onUnmounted(() => {
                             {{ valor }}
                         </div>
                         <p class="text-xs text-muted-foreground">elementos</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        <!-- Sección Sumario -->
+        <Card>
+            <CardHeader>
+                <CardTitle>Sumario</CardTitle>
+                <CardDescription>
+                    Resumen de la evaluación de madurez
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nivel de cultura -->
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 rounded-lg bg-primary/10">
+                            <Trophy class="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Nivel de cultura</p>
+                            <p class="text-xl font-semibold">{{ nivelDominante }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Puntaje promedio de cultura SST -->
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 rounded-lg bg-primary/10">
+                            <Calculator class="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Puntaje promedio de cultura SST</p>
+                            <p class="text-xl font-semibold">{{ puntajePromedio }}</p>
+                        </div>
                     </div>
                 </div>
             </CardContent>

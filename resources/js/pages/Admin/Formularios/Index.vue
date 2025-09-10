@@ -4,7 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, Edit, Trash2, Download, FileText } from 'lucide-vue-next';
+import { Plus, Eye, Edit, Trash2, Download, FileText, Copy } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { ref } from 'vue';
 
@@ -65,6 +65,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 const eliminarFormulario = (id: number) => {
     if (confirm('¿Estás seguro de eliminar este formulario?')) {
         router.delete(route('admin.formularios.destroy', id));
+    }
+};
+
+const duplicarFormulario = (id: number) => {
+    if (confirm('¿Deseas duplicar este formulario? Se creará una copia como borrador.')) {
+        router.post(route('admin.formularios.duplicate', id));
     }
 };
 
@@ -167,19 +173,28 @@ const getTipoAccesoLabel = (tipo: string) => {
                         <!-- Acciones -->
                         <div class="mt-4 flex gap-2">
                             <Link :href="route('admin.formularios.show', formulario.id)">
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" title="Ver formulario">
                                     <Eye class="h-4 w-4" />
                                 </Button>
                             </Link>
                             <Link :href="route('admin.formularios.edit', formulario.id)">
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" title="Editar formulario">
                                     <Edit class="h-4 w-4" />
                                 </Button>
                             </Link>
                             <Button
+                                variant="outline"
+                                size="sm"
+                                title="Duplicar formulario"
+                                @click="duplicarFormulario(formulario.id)"
+                            >
+                                <Copy class="h-4 w-4" />
+                            </Button>
+                            <Button
                                 v-if="formulario.estadisticas.total_respuestas > 0"
                                 variant="outline"
                                 size="sm"
+                                title="Exportar respuestas"
                                 @click="router.visit(route('admin.formularios.exportar', formulario.id))"
                             >
                                 <Download class="h-4 w-4" />
@@ -188,6 +203,7 @@ const getTipoAccesoLabel = (tipo: string) => {
                                 v-if="formulario.estadisticas.total_respuestas === 0"
                                 variant="outline"
                                 size="sm"
+                                title="Eliminar formulario"
                                 @click="eliminarFormulario(formulario.id)"
                             >
                                 <Trash2 class="h-4 w-4 text-destructive" />

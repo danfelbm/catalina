@@ -232,7 +232,6 @@ class FormularioController extends Controller
             'configuracion_campos.*.type' => 'required|string',
             'configuracion_campos.*.title' => 'required|string',
             'configuracion_campos.*.options' => 'sometimes|array',
-            'configuracion_campos.*.options.*' => 'sometimes|string',
             'configuracion_campos.*.options.*.label' => 'sometimes|required_with:configuracion_campos.*.options.*.value|string',
             'configuracion_campos.*.options.*.value' => 'sometimes|nullable|numeric',
             'tipo_acceso' => 'required|in:publico,autenticado,con_permiso',
@@ -387,7 +386,6 @@ class FormularioController extends Controller
             'configuracion_campos.*.type' => 'required|string',
             'configuracion_campos.*.title' => 'required|string',
             'configuracion_campos.*.options' => 'sometimes|array',
-            'configuracion_campos.*.options.*' => 'sometimes|string',
             'configuracion_campos.*.options.*.label' => 'sometimes|required_with:configuracion_campos.*.options.*.value|string',
             'configuracion_campos.*.options.*.value' => 'sometimes|nullable|numeric',
             'tipo_acceso' => 'required|in:publico,autenticado,con_permiso',
@@ -515,5 +513,76 @@ class FormularioController extends Controller
         };
         
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Duplicar un formulario existente
+     */
+    public function duplicate(Formulario $formulario)
+    {
+        DB::beginTransaction();
+        try {
+            // Crear título único para la copia
+            $nuevoTitulo = $formulario->titulo . ' (Copia)';
+            
+            // Generar slug único
+            $baseSlug = $formulario->slug . '-copia';
+            $slug = $baseSlug;
+            $counter = 1;
+            
+            // Verificar si el slug ya existe y generar uno único
+            while (Formulario::where('slug', $slug)->where('tenant_id', $formulario->tenant_id)->exists()) {
+                $slug = $baseSlug . '-' . $counter;
+                $counter++;
+            }
+            
+            // Crear el nuevo formulario duplicado
+            $nuevoFormulario = Formulario::create([
+                'titulo' => $nuevoTitulo,
+                'descripcion' => $formulario->descripcion,
+                'slug' => $slug,
+                'categoria_id' => $formulario->categoria_id,
+                'configuracion_campos' => $formulario->configuracion_campos,
+                'configuracion_general' => $formulario->configuracion_general,
+                'tipo_acceso' => $formulario->tipo_acceso,
+                'permite_visitantes' => $formulario->permite_visitantes,
+                'requiere_captcha' => $formulario->requiere_captcha,
+                'fecha_inicio' => null, // Resetear fechas para que el usuario las configure
+                'fecha_fin' => null,
+                'limite_respuestas' => $formulario->limite_respuestas,
+                'limite_por_usuario' => $formulario->limite_por_usuario,
+                'emails_notificacion' => $formulario->emails_notificacion,
+                'mensaje_confirmacion' => $formulario->mensaje_confirmacion,
+                'estado' => 'borrador', // Siempre crear como borrador
+                'activo' => false, // Inactivo por defecto para revisión
+                'creado_por' => Auth::id(),
+                'actualizado_por' => Auth::id(),
+            ]);
+            
+            // Duplicar permisos si existen
+            foreach ($formulario->permisos as $permiso) {
+                $nuevoFormulario->permisos()->create([
+                    'usuario_id' => $permiso->usuario_id,
+                    'role_id' => $permiso->role_id,
+                    'tipo_permiso' => $permiso->tipo_permiso,
+                    'activo' => $permiso->activo,
+                    'valido_desde' => $permiso->valido_desde,
+                    'valido_hasta' => $permiso->valido_hasta,
+                    'creado_por' => Auth::id(),
+                ]);
+            }
+            
+            DB::commit();
+            
+            // Redirigir a la edición del nuevo formulario
+            return redirect()->route('admin.formularios.edit', $nuevoFormulario->id)
+                ->with('success', 'Formulario duplicado exitosamente. Ahora puedes editarlo según tus necesidades.');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()->back()
+                ->with('error', 'Error al duplicar el formulario: ' . $e->getMessage());
+        }
     }
 }

@@ -327,6 +327,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('formularios/{formulario}/exportar', [\App\Http\Controllers\Admin\FormularioController::class, 'exportarRespuestas'])
         ->middleware('permission:formularios.export')
         ->name('formularios.exportar');
+    Route::post('formularios/{formulario}/duplicate', [\App\Http\Controllers\Admin\FormularioController::class, 'duplicate'])
+        ->middleware('permission:formularios.duplicate')
+        ->name('formularios.duplicate');
     
     // Categorías de formularios (pendiente de implementar)
     // Route::resource('formulario-categorias', \App\Http\Controllers\Admin\FormularioCategoriaController::class)
